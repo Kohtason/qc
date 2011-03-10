@@ -40,14 +40,15 @@ class renderer_plugin_qc extends Doku_Renderer {
 
         // calculated error scores
         'err' => array(
-            'fixme'      => 0,
-            'noh1'       => 0,
-            'manyh1'     => 0,
-            'headernest' => 0,
-            'manyhr'     => 0,
-            'manybr'     => 0,
-            'longformat' => 0,
-            'multiformat'=> 0,
+            'fixme'        => 0,
+            'noh1'         => 0,
+            'manyh1'       => 0,
+            'headernest'   => 0,
+            'manyhr'       => 0,
+            'manybr'       => 0,
+            'longformat'   => 0,
+            'multiformat'  => 0,
+            'tooManyEdits' => 0,
         ),
     );
 
@@ -87,6 +88,11 @@ class renderer_plugin_qc extends Doku_Renderer {
      */
     function document_end() {
         global $ID;
+
+        // 2 Points for too many revisions
+        if($this->doc['changes'] / round(abs(($this->doc['created'] - $this->doc['modified']) / 86400)) > 10) {
+            $this->doc['err']['tooManyEdits'] = 2;
+        }
 
         // 2 points for missing backlinks
         if(!count(ft_backlinks($ID))){
