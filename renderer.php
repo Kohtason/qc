@@ -89,10 +89,22 @@ class renderer_plugin_qc extends Doku_Renderer {
     function document_end() {
         global $ID;
 
-        // 2 Points for too many revisions
-        if($this->doc['changes'] / round(abs(($this->doc['created'] - $this->doc['modified']) / 86400)) > 10) {
-            $this->doc['err']['tooManyEdits'] = 2;
+        // 2 Points for too many revisions -> Version 2
+        // This algorithm checks revisions which were made with a maximum range of 27 hours
+        $revs = getRevisions($ID,0,0);
+        foreach($revs as $rev){
+            $info = getRevisionInfo($ID, $rev);
+            if($date != substr($info['date'],0,-5)){
+              $date = substr($info['date'],0,-5);
+              unset($revCounter);
+            }
+            $revCounter[$info['user']]++;
+            if($revCounter[$info['user']] >= 9){
+              $this->doc['err']['tooManyEdits'] = 2;
+              break;
+            }
         }
+        unset($revs);
 
         // 2 points for missing backlinks
         if(!count(ft_backlinks($ID))){
