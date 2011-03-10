@@ -10,8 +10,9 @@ $ID   = cleanID($_REQUEST['id']);
 $qc = plugin_load('helper','qc');
 $data = $qc->getQCData($ID);
 
-$maxerr = 10; //what score to use as total failure
-$pct = ($data['score']*100)/$maxerr;
+$greenScore = 5; //what score to gain a green badge?
+$yellowScore = -2.5; //what score to gain a yellow badge?
+$pct = 0;
 
 if($_REQUEST['type'] == 'small'){
     $OPTS = array(
@@ -26,12 +27,12 @@ if($_REQUEST['type'] == 'small'){
     icon_small($pct,$data['score'],$data['fixme']);
 }else{
     $OPTS = array(
-        'font'   => dirname(__FILE__).'/DejaVuSans-Bold.ttf',
-        'size'   => 10,
-        'xpad'   => 6,
-        'ypad'   => 2,
+        'font'   => dirname(__FILE__).'/vera.ttf',
+        'size'   => 8,
+        'xpad'   => 2,
+        'ypad'   => 4,
         'crad'   => 2,
-        'width'  => 600,
+        'width'  => 200,
         'height' => 25,
     );
     icon_large($pct,$data['score'],$data['fixme']);
@@ -41,7 +42,8 @@ if($_REQUEST['type'] == 'small'){
 function icon_small($pct,$score,$fixmes){
     global $qc;
     global $OPTS;
-    global $maxerr;
+    global $greenScore;
+    global $yellowScore;
 
     // create a transparent image
     $img   = imagecreatetruecolor($OPTS['width'],$OPTS['height']);
@@ -51,12 +53,12 @@ function icon_small($pct,$score,$fixmes){
     imagefill($img, 0, 0, $transparentColor);
 
 
-    if($score > $maxerr) {
-        $c_score = imagecolorallocate($img,255,0,0);   #red
-    }elseif($score){
+    if($score > $greenScore) {
+        $c_score = imagecolorallocate($img,0,255,0);   #green
+    }elseif($score > $yellowScore){
         $c_score = imagecolorallocate($img,255,255,0); #yellow
     }else{
-        $c_score = imagecolorallocate($img,0,255,0);   #green
+        $c_score = imagecolorallocate($img,255,0,0);   #red
     }
     $c_black  = imagecolorallocate($img,0,0,0);
     $c_yellow = imagecolorallocate($img,255,255,0);
@@ -73,7 +75,8 @@ function icon_small($pct,$score,$fixmes){
 function icon_large($pct,$score,$fixmes){
     global $qc;
     global $OPTS;
-    global $maxerr;
+    global $greenScore;
+    global $yellowScore;
 
     // create a transparent image
     $img   = imagecreatetruecolor($OPTS['width'],$OPTS['height']);
@@ -92,12 +95,12 @@ function icon_large($pct,$score,$fixmes){
     $x += 10;
 
     // status icon
-    if($score > $maxerr) {
-        $ico = DOKU_INC.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/status_red.png';
-    }elseif($score){
+    if($score > $greenScore) {
+        $ico = DOKU_INC.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/status_green.png';
+    }elseif($score > $yellowScore){
         $ico = DOKU_INC.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/status_yellow.png';
     }else{
-        $ico = DOKU_INC.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/status_green.png';
+        $ico = DOKU_INC.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/status_red.png';
     }
     $ico = imagecreatefrompng($ico);
     $w   = imagesx($ico);
