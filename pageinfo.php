@@ -48,35 +48,48 @@ echo '</dd>';
 echo '<dt>'.$qc->getLang('g_changes').'</dt>';
 echo '<dd>'.$data['changes'].'</dd>';
 
+/* // DO NOT DISPLAY THOSE
 echo '<dt>'.$qc->getLang('g_chars').'</dt>';
 echo '<dd>'.$data['chars'].'</dd>';
 
 echo '<dt>'.$qc->getLang('g_words').'</dt>';
 echo '<dd>'.$data['words'].'</dd>';
+*/
 
 echo '</dl>';
 echo '</div>';
 
-
-// output all the problems
 if($data['score']){
-    echo '<h2>'.$qc->getLang('errorsfound_h').'</h2>';
-    echo '<p>'.$qc->getLang('errorsfound').'</p>';
-    echo '<div>';
-    arsort($data['err']); #sort by score
-    foreach($data['err'] as $err => $val){
-        if($val){
-            echo '<h3>';
-            echo sprintf($qc->getLang($err.'_h'),$val);
-            for($i=0; $i<$val; $i++){
-                echo '<img src="'.DOKU_BASE.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/status_red.png" alt="☹" />';
+    echo '<h2>'.$qc->getLang('hintsfound_h').'</h2>';
+    echo '<p>'.$qc->getLang('hintsfound').'</p>';
+    echo '<div>'; 
+    // Show mistakes
+    if(!empty($data['err'])) {
+        arsort($data['err']); #sort by score
+        foreach($data['err'] as $err => $val){
+            if($val){
+                echo '<h3>';
+                echo '<img src="'.DOKU_BASE.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/bad.png" alt="" /> ';
+                echo sprintf($qc->getLang($err.'_h'),$val);
+                echo '</h3>';
+                echo '<p>'.sprintf($qc->getLang($err),$val).'</p>';
             }
-            echo '</h3>';
-            echo '<p>'.sprintf($qc->getLang($err),$val).'</p>';
+        }
+    }
+    // Show good points
+    if(!empty($data['good'])) {
+        arsort($data['good']); #sort by score
+        foreach($data['good'] as $good => $val){
+            if($val){
+                echo '<h3>';
+                echo '<img src="'.DOKU_BASE.'lib/plugins/qc/pix/'.$qc->getConf('theme').'/good.png" alt="" /> ';
+                echo sprintf($qc->getLang($good.'_h'),$val);
+                echo '</h3>';
+                echo '<p>'.sprintf($qc->getLang($good),$val).'</p>';
+            }
         }
     }
     echo '</div>';
 }
 
 //dbg($data);
-
