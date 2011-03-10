@@ -40,14 +40,28 @@ class renderer_plugin_qc extends Doku_Renderer {
 
         // calculated error scores
         'err' => array(
-            'fixme'      => 0,
-            'noh1'       => 0,
-            'manyh1'     => 0,
-            'headernest' => 0,
-            'manyhr'     => 0,
-            'manybr'     => 0,
-            'longformat' => 0,
-            'multiformat'=> 0,
+            'fixme'        => 0,
+            'noh1'         => 0,
+            'manyh1'       => 0,
+            'headernest'   => 0,
+            'manyhr'       => 0,
+            'manybr'       => 0,
+            'longformat'   => 0,
+            'multiformat'  => 0,
+            'tooManyEdits' => 0,
+        ),
+        
+        // calculated positive scores
+        'good' => array(
+            'noFixme'       => 0,
+            'hasH1'         => 0,
+            'fewH1'         => 0,
+            'noHeadernest'  => 0,
+            'fewHr'         => 0,
+            'noBr'          => 0,
+            'averageFormat' => 0,
+            'cleanFormat'   => 0,
+            'hasBacklink'   => 0,
         ),
     );
 
@@ -90,27 +104,38 @@ class renderer_plugin_qc extends Doku_Renderer {
 
         // 2 points for missing backlinks
         if(!count(ft_backlinks($ID))){
-            $this->doc['err']['nobacklink'] += 2;
+            $this->doc['err']['nobacklink'] += 5;
+        } else {
+        		$this->doc['good']['hasBacklink'] = 1;
         }
 
         // 1 point for each FIXME
         $this->doc['err']['fixme'] += $this->doc['fixme'];
+        if($this->doc['fixme'] < 1) {
+        	$this->doc['good']['noFixme'] = 1;
+        }
 
         // 5 points for missing H1
         if($this->doc['header_count'][1] == 0){
             $this->doc['err']['noh1'] += 5;
+        } else {
+        	$this->doc['good']['hasH1'] = 5;
         }
+        
         // 1 point for each H1 too much
         if($this->doc['header_count'][1] > 1){
-            $this->doc['err']['manyh1'] += $this->doc['header'][1];
+            $this->doc['err']['manyh1'] += $this->doc['header_count'][1];
         }
-
+ 
         // 1 point for each incorrectly nested headline
         $cnt = count($this->doc['header_struct']);
         for($i = 1; $i < $cnt; $i++){
             if($this->doc['header_struct'][$i] - $this->doc['header_struct'][$i-1] > 1){
                 $this->doc['err']['headernest'] += 1;
             }
+        }
+        if($this->doc['err']['headernest'] < 1) {
+        	  $this->doc['good']['noHeadernest'] = 1;
         }
 
         // 1/2 points for deeply nested quotations
@@ -123,16 +148,22 @@ class renderer_plugin_qc extends Doku_Renderer {
         // 1/2 points for too many hr
         if($this->doc['hr'] > 2){
             $this->doc['err']['manyhr'] = ($this->doc['hr'] - 2)/2;
+        } else {
+        	 $this->doc['good']['fewHr'] = 0.5;
         }
 
-        // 1 point for too many line breaks
+        // 0.25 point for too many line breaks
         if($this->doc['linebreak'] > 2){
-            $this->doc['err']['manybr'] = $this->doc['linebreak'] - 2;
+            $this->doc['err']['manybr'] = ($this->doc['linebreak'] - 2) / 4;
+        } else {
+        		$this->doc['good']['fewbr'] = 1;
         }
 
         // 1 point for single author only
         if(count($this->doc['authors']) == 1){
             $this->doc['err']['singleauthor'] = 1;
+        } else {
+        		$this->doc['good']['multiauthor'] = 1;
         }
 
         // 1 point for too small document
@@ -168,7 +199,9 @@ class renderer_plugin_qc extends Doku_Renderer {
 
         // 1 point when no link at all
         if(!$this->doc['internal_links']){
-            $this->doc['err']['nolink'] = 1;
+            $this->doc['err']['nolink'] = 5;
+        } elseif($this->doc['internal_links'] > 1) {
+        		$this->doc['good']['hasLink'] = 1;
         }
 
         // 0.5 for broken links when too many
@@ -181,9 +214,9 @@ class renderer_plugin_qc extends Doku_Renderer {
             $this->doc['err']['manyformat'] = 2;
         }
 
-        // add up all scores
-        foreach($this->doc['err'] as $err => $val) $this->doc['score'] += $val;
-
+				// add up all scores
+        foreach($this->doc['err'] as $err => $val) $this->doc['score'] -= $val;
+        foreach($this->doc['good'] as $good => $val) $this->doc['score'] += $val;
 
         //we're done here
         $this->doc = serialize($this->doc);
