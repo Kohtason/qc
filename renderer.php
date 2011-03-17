@@ -89,7 +89,6 @@ class renderer_plugin_qc extends Doku_Renderer {
     function document_end() {
         global $ID;
 
-        // 2 Points for too many revisions -> Version 2
         // 2 Points for too many revisions
         // This algorithm checks revisions which were made with a maximum range of one day
         $revs = getRevisions($ID,0,0);
