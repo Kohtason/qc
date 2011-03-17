@@ -93,16 +93,18 @@ class renderer_plugin_qc extends Doku_Renderer {
         // This algorithm checks revisions which were made with a maximum range of 27 hours
         $revs = getRevisions($ID,0,0);
         foreach($revs as $rev){
-            $info = getRevisionInfo($ID, $rev);
-            if($date != substr($info['date'],0,-5)){
-              $date = substr($info['date'],0,-5);
-              unset($revCounter);
-            }
-            $revCounter[$info['user']]++;
-            if($revCounter[$info['user']] >= 9){
-              $this->doc['err']['tooManyEdits'] = 2;
-              break;
-            }
+            $info = getRevisionInfo($ID, $rev);    
+            if((abs(time() - $info['date'])/86400) < 30) {        
+							if((abs($date - $info['date'])/86400) >= 1) {
+	              $date = $info['date'];
+	              unset($revCounter);
+	            }
+		          $revCounter[$info['user']]++;
+		          if($revCounter[$info['user']] >= 9){
+		          	$this->doc['err']['tooManyEdits'] = 2;
+		          	break;
+		          }
+	          }
         }
         unset($revs);
 
